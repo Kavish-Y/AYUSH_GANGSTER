@@ -1,0 +1,227 @@
+/* ==========================================================================
+   AyushGangster Attendance Calculator - Aesthetic Styling
+   Theme: Midnight Obsidian & Cyberpunk Flame Glow
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+:root {
+  --bg-main: #060911;
+  --bg-card: rgba(14, 21, 37, 0.72);
+  --bg-card-hover: rgba(20, 31, 56, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  
+  /* Flame / Brand Accents */
+  --flame-gold: #f59e0b;
+  --flame-orange: #f97316;
+  --flame-red: #ef4444;
+  --neon-blue: #38bdf8;
+  --neon-indigo: #6366f1;
+  
+  /* Status Colors */
+  --safe-green: #10b981;
+  --safe-green-glow: rgba(16, 185, 129, 0.35);
+  --safe-green-bg: rgba(16, 185, 129, 0.12);
+  --safe-border: rgba(16, 185, 129, 0.45);
+  
+  --danger-red: #f43f5e;
+  --danger-red-glow: rgba(244, 63, 94, 0.35);
+  --danger-red-bg: rgba(244, 63, 94, 0.12);
+  --danger-border: rgba(244, 63, 94, 0.45);
+
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(at 10% 10%, rgba(249, 115, 22, 0.14) 0px, transparent 50%),
+    radial-gradient(at 90% 20%, rgba(56, 189, 248, 0.13) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, rgba(99, 102, 241, 0.12) 0px, transparent 60%),
+    linear-gradient(to bottom, #060911, #0b1120);
+  background-attachment: fixed;
+  color: #f1f5f9;
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .brand-font {
+  font-family: var(--font-heading);
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Flame & Neon Gradient Accents */
+.text-flame-gradient {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 45%, #ef4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-cyan-gradient {
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.flame-border-glow {
+  box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.4);
+}
+
+/* Dynamic Subject Card Styling */
+.card-safe {
+  background: linear-gradient(145deg, rgba(14, 28, 25, 0.85), rgba(10, 20, 26, 0.8));
+  border: 1px solid var(--safe-border) !important;
+  box-shadow: 0 8px 25px -5px var(--safe-green-glow);
+}
+
+.card-safe:hover {
+  box-shadow: 0 12px 30px -3px rgba(16, 185, 129, 0.45);
+  transform: translateY(-2px);
+}
+
+.card-danger {
+  background: linear-gradient(145deg, rgba(35, 15, 22, 0.85), rgba(20, 10, 20, 0.8));
+  border: 1px solid var(--danger-border) !important;
+  box-shadow: 0 8px 25px -5px var(--danger-red-glow);
+}
+
+.card-danger:hover {
+  box-shadow: 0 12px 30px -3px rgba(244, 63, 94, 0.45);
+  transform: translateY(-2px);
+}
+
+/* Status Badges */
+.badge-safe {
+  background-color: var(--safe-green-bg);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.badge-danger {
+  background-color: var(--danger-red-bg);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.3);
+}
+
+/* Radial Gauge / Circle SVG */
+.radial-progress-circle {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), stroke 0.4s ease;
+}
+
+/* Progress bar fill animations */
+.progress-bar-fill {
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+}
+
+/* Dropzone styling */
+.dropzone {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+
+.dropzone.dragover {
+  border-color: #f97316;
+  background-color: rgba(249, 115, 22, 0.08);
+  transform: scale(1.01);
+}
+
+/* Subtle Pulsing Flame Effect */
+@keyframes flame-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px 2px rgba(249, 115, 22, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 35px 8px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.hero-avatar-glow {
+  animation: flame-pulse 4s infinite alternate ease-in-out;
+}
+
+/* Action button micro-interactions */
+.btn-action {
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-action:active {
+  transform: scale(0.93);
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #060911;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Simulation badge pulse */
+@keyframes sim-glow {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px #f97316); }
+}
+
+.sim-active-indicator {
+  animation: sim-glow 2s infinite ease-in-out;
+}
+
+/* Responsive Mobile Sticky Footer */
+@media (max-width: 768px) {
+  .mobile-sticky-stats {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: rgba(9, 14, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.6);
+    padding: 0.75rem 1rem;
+  }
+  
+  body {
+    padding-bottom: 5.5rem;
+  }
+}

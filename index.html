@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AyushGangster - College Attendance & Bunk Calculator</title>
+  <meta name="description" content="Calculate aggregate college attendance, plan safe bunks, direct copy-paste ERP logs, and simulate class impact.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#f97316',
+              amber: '#f59e0b',
+              red: '#ef4444',
+              blue: '#38bdf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- SheetJS (XLSX) for optional Excel files -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Canvas Confetti for celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="text-slate-100 antialiased selection:bg-orange-500 selection:text-white">
+
+  <!-- Background Decorative Blurs -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/4 -right-32 w-96 h-96 bg-sky-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation / Brand Header -->
+    <header class="border-b border-white/10 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-30 px-4 sm:px-8 py-3.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <!-- Title & Photo Branding -->
+        <div class="flex items-center gap-3.5">
+          <!-- Branded Avatar with Image & Flame Aura -->
+          <div class="relative group cursor-pointer">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-600 hero-avatar-glow shadow-lg">
+              <img src="assets/images/ayush_gangster.jpg" alt="AyushGangster" class="w-full h-full object-cover object-top rounded-full">
+            </div>
+            <!-- Online Flame Status Badge -->
+            <span class="absolute -bottom-1 -right-1 bg-slate-900 rounded-full p-0.5 border border-orange-500/50">
+              <span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-orange-500 text-[9px] font-black text-slate-950">
+                🔥
+              </span>
+            </span>
+          </div>
+
+          <!-- Brand Text -->
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black tracking-tight text-flame-gradient uppercase">
+                AyushGangster
+              </h1>
+              <span class="hidden sm:inline-block text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                ERP Intelligence
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 font-medium">
+              Attendance Calculator & Bunk Planner
+            </p>
+          </div>
+        </div>
+
+        <!-- Header Quick Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button id="btnExportReport" class="btn-action text-xs font-semibold px-3 py-2 rounded-xl glass-pill text-slate-300 hover:text-white hover:bg-white/10 flex items-center gap-1.5 transition-all">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="hidden sm:inline">Export CSV</span>
+          </button>
+
+          <button id="btnOpenAddModal" class="btn-action text-xs sm:text-sm font-bold px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-slate-950 hover:brightness-110 shadow-lg shadow-orange-500/20 flex items-center gap-1.5 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            <span>Add Subject</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto w-full px-4 sm:px-8 py-6 space-y-6">
+
+      <!-- HERO DASHBOARD: Aggregate Overview + Hero Card + Target Control -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Widget: Aggregate Radial Gauge & Bunk Planner (7 cols on lg) -->
+        <div class="lg:col-span-7 glass-panel p-5 sm:p-7 relative overflow-hidden flex flex-col justify-between border-slate-800">
+          <div class="absolute -right-16 -bottom-16 w-48 h-48 bg-orange-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div>
+            <!-- Header with Target Threshold Selector -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+              <div>
+                <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Total Aggregate</span>
+                <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                  College Attendance Meter
+                </h2>
+              </div>
+
+              <!-- Target Percentage Adjuster -->
+              <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-white/10">
+                <span class="text-xs text-slate-400 font-medium">Target:</span>
+                <span id="targetDisplay" class="text-sm font-extrabold text-orange-400">75%</span>
+                <div class="flex gap-1 ml-1">
+                  <button data-target="70" class="target-preset-btn text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 font-medium">70%</button>
+                  <button data-target="75" class="target-preset-btn text-[11px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-500/40 font-bold">75%</button>
+                  <button data-target="80" class="target-preset-btn text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 font-medium">80%</button>
+                  <button data-target="85" class="target-preset-btn text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 font-medium">85%</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gauge + Key Statistics -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
+              
+              <!-- SVG Circular Progress Meter (5 cols) -->
+              <div class="sm:col-span-5 flex flex-col items-center justify-center relative">
+                <div class="relative w-40 h-40 sm:w-44 sm:h-44 flex items-center justify-center">
+                  <svg class="w-full h-full" viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="62" stroke="rgba(255,255,255,0.06)" stroke-width="12" fill="none"></circle>
+                    <circle id="aggregateCircle" class="radial-progress-circle" cx="80" cy="80" r="62" stroke="#10b981" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="389.5 389.5" stroke-dashoffset="100"></circle>
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                    <span id="aggregatePercentText" class="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                      0.0%
+                    </span>
+                    <span id="aggregateBasePercentText" class="text-[11px] text-slate-400 font-medium mt-0.5">
+                      Target: 75%
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Status Badge -->
+                <div class="mt-2">
+                  <span id="aggregateStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider badge-safe flex items-center gap-1.5 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Safe Zone
+                  </span>
+                </div>
+              </div>
+
+              <!-- Aggregate Numbers & Quick Counters (7 cols) -->
+              <div class="sm:col-span-7 space-y-3.5">
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="glass-pill p-3 rounded-xl border border-white/5">
+                    <span class="text-[11px] text-slate-400 font-medium block">Total Attended</span>
+                    <span id="aggregateAttendedCount" class="text-2xl font-black text-emerald-400">0</span>
+                    <span class="text-[10px] text-slate-500 block">classes / hours attended</span>
+                  </div>
+                  <div class="glass-pill p-3 rounded-xl border border-white/5">
+                    <span class="text-[11px] text-slate-400 font-medium block">Total Conducted</span>
+                    <span id="aggregateHeldCount" class="text-2xl font-black text-sky-400">0</span>
+                    <span class="text-[10px] text-slate-500 block">total held in college</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="glass-pill p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+                    <span class="text-[11px] text-emerald-400 font-medium block">Safe Subjects</span>
+                    <span id="safeSubjectsCount" class="text-2xl font-black text-emerald-300">0</span>
+                    <span class="text-[10px] text-slate-400 block">&ge; target threshold</span>
+                  </div>
+                  <div class="glass-pill p-3 rounded-xl border border-rose-500/20 bg-rose-500/5">
+                    <span class="text-[11px] text-rose-400 font-medium block">Shortage Subjects</span>
+                    <span id="dangerSubjectsCount" class="text-2xl font-black text-rose-300">0</span>
+                    <span class="text-[10px] text-slate-400 block">&lt; target threshold</span>
+                  </div>
+                </div>
+
+                <!-- Custom Target Range Slider -->
+                <div class="pt-1">
+                  <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+                    <span>Fine-tune Target Criteria:</span>
+                    <span class="text-slate-300 font-bold">60% – 90%</span>
+                  </div>
+                  <input type="range" id="targetSlider" min="60" max="90" step="1" value="75" class="w-full accent-orange-500 h-2 bg-slate-800 rounded-lg cursor-pointer">
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Dynamic Bunk Recommendation Alert Footer -->
+          <div class="mt-6 pt-4 border-t border-white/10">
+            <div id="aggregateBunkPlanText" class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-sm">
+              <!-- Rendered dynamically in JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Widget: AyushGangster Profile Card + Global Simulator (5 cols on lg) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+
+          <!-- Brand Profile Card with Image -->
+          <div class="glass-panel p-5 rounded-2xl flex items-center gap-4 border-slate-800 bg-gradient-to-r from-slate-950/80 via-slate-900/80 to-slate-950/80 relative overflow-hidden">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden p-0.5 bg-gradient-to-b from-orange-400 via-rose-500 to-indigo-600 flex-shrink-0 flame-border-glow">
+              <img src="assets/images/ayush_gangster.jpg" alt="AyushGangster" class="w-full h-full object-cover object-top rounded-2xl">
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 text-xs text-orange-400 font-bold uppercase tracking-widest">
+                <span>⚡ Bunk Strategist</span>
+              </div>
+              <h3 class="text-lg sm:text-xl font-black text-white truncate brand-font tracking-tight">
+                AyushGangster
+              </h3>
+              <p class="text-xs text-slate-300 mt-1 line-clamp-2">
+                "Rule your college ERP attendance. Never get detained, always know when you can take leaves."
+              </p>
+            </div>
+          </div>
+
+          <!-- Global Interactive "What-If" Simulator Widget -->
+          <div class="glass-panel p-5 rounded-2xl flex-1 flex flex-col justify-between border-slate-800">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="p-1.5 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/30">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  </span>
+                  <div>
+                    <h3 class="font-bold text-sm text-white">Global "What-If" Simulator</h3>
+                    <p class="text-[11px] text-slate-400">Test upcoming classes across all subjects</p>
+                  </div>
+                </div>
+                <button id="btnResetSim" class="text-[11px] text-orange-400 hover:text-orange-300 hover:underline font-bold">
+                  Reset
+                </button>
+              </div>
+
+              <!-- Simulation Controls -->
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <!-- Attend Next Classes Counter -->
+                <div class="bg-emerald-500/10 border border-emerald-500/25 p-3 rounded-xl">
+                  <span class="text-xs font-bold text-emerald-400 block mb-1.5">Attend Next Classes</span>
+                  <div class="flex items-center justify-between">
+                    <button id="btnSimAttendMinus" class="btn-action w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-black hover:bg-emerald-500/40">-</button>
+                    <input type="text" id="simAttendInput" readonly value="0" class="w-10 text-center font-bold text-lg bg-transparent text-white focus:outline-none">
+                    <button id="btnSimAttendPlus" class="btn-action w-8 h-8 rounded-lg bg-emerald-500/30 text-emerald-300 flex items-center justify-center font-black hover:bg-emerald-500/50">+</button>
+                  </div>
+                </div>
+
+                <!-- Bunk / Miss Next Classes Counter -->
+                <div class="bg-rose-500/10 border border-rose-500/25 p-3 rounded-xl">
+                  <span class="text-xs font-bold text-rose-400 block mb-1.5">Bunk / Miss Classes</span>
+                  <div class="flex items-center justify-between">
+                    <button id="btnSimMissMinus" class="btn-action w-8 h-8 rounded-lg bg-rose-500/20 text-rose-300 flex items-center justify-center font-black hover:bg-rose-500/40">-</button>
+                    <input type="text" id="simMissInput" readonly value="0" class="w-10 text-center font-bold text-lg bg-transparent text-white focus:outline-none">
+                    <button id="btnSimMissPlus" class="btn-action w-8 h-8 rounded-lg bg-rose-500/30 text-rose-300 flex items-center justify-center font-black hover:bg-rose-500/50">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulator Impact Projection Feedback -->
+            <div id="simDeltaIndicator" class="mt-4 pt-3 border-t border-white/10 flex items-center justify-center text-center">
+              <span class="text-slate-400 text-xs">Adjust classes above to see immediate aggregate impact</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- DIRECT COPY-PASTE ATTENDANCE REPORT SECTION -->
+      <section class="glass-panel p-5 sm:p-6 rounded-2xl border-slate-800">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-500/20 text-orange-400 text-sm font-black border border-orange-500/30">
+                📋
+              </span>
+              Direct Copy-Paste College ERP Attendance Report
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Select all and copy (<kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-slate-300 border border-white/10">Ctrl + C</kbd>) your attendance table from your college portal and paste (<kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-slate-300 border border-white/10">Ctrl + V</kbd>) directly below.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button id="btnLoadAyushReport" class="btn-action text-xs font-bold px-3 py-2 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500/30 flex items-center gap-1.5 transition-all">
+              <span>📋 Load Ayush's Report (183 Records)</span>
+            </button>
+            <button id="btnClearPaste" class="btn-action text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+              Clear Text
+            </button>
+            <button id="btnClearAll" class="btn-action text-xs font-semibold px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 hover:bg-rose-500/20 transition-all">
+              Reset All
+            </button>
+          </div>
+        </div>
+
+        <!-- Copy Paste Textarea Input Area -->
+        <div class="space-y-3">
+          <div class="relative">
+            <textarea id="pasteTextarea" rows="6" placeholder="Paste your college ERP attendance report table here...&#10;&#10;e.g.&#10;#	Subject Code	Subject	Subject Type	Faculty Name	Date	Starting Time	Number of Hours	Marked&#10;1	CSUL303	Software Engineering and Project Management	Lecture	Aakriti Sharma	2026-09-14	12:00 PM	1	P" class="w-full px-4 py-3.5 rounded-2xl bg-slate-950/80 border border-white/15 text-xs sm:text-sm text-slate-200 font-mono placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 leading-relaxed resize-y"></textarea>
+          </div>
+
+          <!-- Options & Analyze Button Bar -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div class="flex items-center gap-4">
+              <!-- Count by Hours Checkbox -->
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="countByHoursCheckbox" checked class="accent-orange-500 w-4 h-4 rounded cursor-pointer">
+                <span class="text-xs text-slate-300 font-medium">
+                  Count by <strong>Number of Hours</strong> (e.g. 2-hr or 3-hr Labs = 2 or 3 classes)
+                </span>
+              </label>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span id="pasteStatusBadge" class="text-xs text-emerald-400 font-semibold truncate max-w-xs"></span>
+
+              <button id="btnAnalyzePaste" class="btn-action text-xs sm:text-sm font-black px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-slate-950 hover:brightness-110 shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span>Analyze Attendance Report</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Optional File Upload Drawer Toggle -->
+          <div class="pt-3 border-t border-white/5">
+            <button id="toggleUploadBox" class="text-xs text-slate-400 hover:text-orange-400 flex items-center gap-1.5 transition-colors font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              <span>Or upload an Excel file (.xlsx, .xls, .csv)</span>
+            </button>
+
+            <div id="uploadBoxContent" class="hidden mt-3 pt-2">
+              <div id="dropzone" class="dropzone rounded-2xl p-5 text-center cursor-pointer bg-slate-950/40 hover:bg-slate-900/50 transition-all">
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden">
+                <p class="text-xs text-slate-300">
+                  Drop your Excel sheet here or <span class="text-orange-400 underline cursor-pointer">browse file</span>
+                </p>
+                <button id="btnBrowseFile" type="button" class="btn-action mt-2 text-xs font-bold px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 transition-all">
+                  Choose File
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SUBJECTS LIST & SIMULATOR SECTION -->
+      <section class="space-y-4">
+
+        <!-- Controls Bar: Filter Tabs, Search, Sort -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-4 rounded-2xl border-slate-800">
+          
+          <!-- Filter Tabs -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <button data-filter="all" class="filter-tab text-xs font-bold px-3 py-1.5 rounded-xl bg-white/15 text-white border border-white/20 transition-all">
+              All Subjects
+            </button>
+            <button data-filter="safe" class="filter-tab text-xs font-bold px-3 py-1.5 rounded-xl text-emerald-400 hover:bg-emerald-500/10 transition-all flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Safe (&ge; 75%)
+            </button>
+            <button data-filter="danger" class="filter-tab text-xs font-bold px-3 py-1.5 rounded-xl text-rose-400 hover:bg-rose-500/10 transition-all flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-rose-400"></span> Shortage (&lt; 75%)
+            </button>
+          </div>
+
+          <!-- Search & Sort Controls -->
+          <div class="flex items-center gap-3">
+            <!-- Search Input -->
+            <div class="relative flex-1 sm:w-56">
+              <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <input type="text" id="searchInput" placeholder="Search subject..." class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500">
+            </div>
+
+            <!-- Sort Dropdown -->
+            <select id="sortSelect" class="bg-slate-900 border border-white/10 text-xs text-slate-300 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-orange-500">
+              <option value="default">Default Order</option>
+              <option value="asc">Lowest % First (Critical)</option>
+              <option value="desc">Highest % First</option>
+              <option value="name">Alphabetical</option>
+            </select>
+
+            <!-- Subject Counter -->
+            <span id="subjectCountBadge" class="hidden md:inline-block text-xs font-mono text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+              0 Subjects
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Subjects Grid (Different color styling: Green for >=75%, Red for <75%) -->
+        <div id="subjectsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <!-- Dynamic Subject Cards injected via app.js -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden glass-panel p-12 text-center rounded-2xl border-slate-800">
+          <div class="w-16 h-16 mx-auto rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">No Subjects Found</h3>
+          <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            Try adjusting your search/filter or paste your college attendance report into the box above.
+          </p>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-slate-950/80 py-6 px-4 text-center text-xs text-slate-500 mt-12">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-white text-sm text-flame-gradient">AyushGangster</span>
+          <span>&copy; 2026. All rights reserved.</span>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          Standard university attendance threshold is 75%. Safe bunks & shortage attendances are computed dynamically.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Mobile Sticky Footer Summary -->
+    <div class="mobile-sticky-stats md:hidden flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-amber-500 to-rose-600 flex-shrink-0">
+          <img src="assets/images/ayush_gangster.jpg" alt="AyushGangster" class="w-full h-full object-cover object-top rounded-full">
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-slate-400 font-medium">Aggregate:</span>
+            <span id="mobileAggregateText" class="text-base font-black text-white">0.0%</span>
+            <span id="mobileStatusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold badge-safe">Safe</span>
+          </div>
+          <p id="mobileQuickPlan" class="text-[10px] text-slate-400 truncate max-w-[200px]">
+            Calculating bunks...
+          </p>
+        </div>
+      </div>
+      <button onclick="document.getElementById('btnOpenAddModal').click()" class="btn-action w-9 h-9 rounded-xl bg-orange-500 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-orange-500/30">
+        +
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ADD / EDIT SUBJECT MODAL -->
+  <div id="subjectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-panel w-full max-w-md p-6 rounded-2xl border-slate-700 bg-slate-900 shadow-2xl relative">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+        <h3 id="modalTitle" class="text-lg font-bold text-white">Add New Subject</h3>
+        <button id="btnCloseModal" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="subjectForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Subject / Course Name *</label>
+          <input type="text" id="inputSubName" required placeholder="e.g. Operating Systems" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/15 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-slate-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Subject Code (Optional)</label>
+          <input type="text" id="inputSubCode" placeholder="e.g. CSUL302" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/15 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-slate-500 font-mono">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Classes / Hours Attended *</label>
+            <input type="number" id="inputSubAttended" min="0" required placeholder="e.g. 17" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/15 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-slate-500 font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Total Classes / Hours Held *</label>
+            <input type="number" id="inputSubHeld" min="0" required placeholder="e.g. 23" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/15 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-slate-500 font-mono">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+          <button type="button" id="btnCancelModal" class="btn-action px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="btn-action px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:brightness-110 shadow-lg shadow-orange-500/20 transition-all">
+            Save Subject
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-none">
+    <div class="glass-panel px-4 py-3 rounded-xl border border-orange-500/30 bg-slate-900/95 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-orange-400 animate-ping"></span>
+      <span id="toastMessage">Action completed</span>
+    </div>
+  </div>
+
+  <!-- App Scripts -->
+  <script src="assets/js/erp-parser.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
