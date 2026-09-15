@@ -6,10 +6,10 @@
 (function () {
   'use strict';
 
-  // LocalStorage keys
-  const STORAGE_KEY_SUBJECTS = 'ayush_gangster_subjects_v2';
-  const STORAGE_KEY_TARGET = 'ayush_gangster_target_v2';
-  const STORAGE_KEY_COUNT_HOURS = 'ayush_gangster_count_hours_v2';
+  // LocalStorage keys (v3 with fixed multi-column ERP summary table parsing)
+  const STORAGE_KEY_SUBJECTS = 'ayush_gangster_subjects_v3';
+  const STORAGE_KEY_TARGET = 'ayush_gangster_target_v3';
+  const STORAGE_KEY_COUNT_HOURS = 'ayush_gangster_count_hours_v3';
 
   // App State
   const state = {
@@ -140,7 +140,7 @@
         }
       }
 
-      // Default: parse and load the user's authentic 183-row report
+      // Default: load the user's latest report
       loadDefaultUserReport();
 
     } catch (e) {
@@ -159,13 +159,13 @@
           simAttendedDiff: 0,
           simHeldDiff: 0
         }));
-        state.totalRecordsProcessed = res.totalRows || 183;
+        state.totalRecordsProcessed = res.totalRows || state.subjects.length;
         saveSubjects();
         if (dom.pasteTextarea) {
           dom.pasteTextarea.value = raw;
         }
         if (dom.pasteStatusBadge) {
-          dom.pasteStatusBadge.innerText = `Analyzed 183 attendance records across 12 subjects`;
+          dom.pasteStatusBadge.innerText = `Analyzed ${state.subjects.length} subjects from your ERP report`;
         }
       }
     }
@@ -385,7 +385,7 @@
           dom.aggregateBunkPlanText.innerHTML = `
             <div class="flex items-center gap-2 text-amber-300 font-semibold">
               <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-              <span>On the margin! You are right at ${state.target}%. If you miss even 1 class, your aggregate drops into shortage.</span>
+              <span>On the exact edge! You are right at ${state.target}%. If you miss even 1 class, your aggregate drops into shortage.</span>
             </div>
           `;
         }
@@ -487,7 +487,7 @@
       const stats = calculateSubjectStats(effAttended, effHeld, state.target);
       const isSimulated = sub.simHeldDiff !== 0;
 
-      // Color scheme classes: Green for Safe (>=75%), Red for Danger (<75%)
+      // Color scheme: Green for Safe (>=75%), Red for Danger (<75%)
       const cardClass = stats.isSafe ? 'card-safe' : 'card-danger';
       const progressBg = stats.isSafe ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-gradient-to-r from-rose-500 to-red-500';
       const percentColor = stats.isSafe ? 'text-emerald-400' : 'text-rose-400';
@@ -672,7 +672,6 @@
       dom.countByHoursCheckbox.addEventListener('change', (e) => {
         state.countByHours = e.target.checked;
         localStorage.setItem(STORAGE_KEY_COUNT_HOURS, state.countByHours.toString());
-        // If textarea has text, re-analyze
         if (dom.pasteTextarea && dom.pasteTextarea.value.trim()) {
           handleAnalyzePastedText();
         }
@@ -815,7 +814,7 @@
       });
     }
 
-    // Excel File Upload & Drag-and-Drop
+    // File Upload & Drag-and-Drop
     if (dom.btnBrowseFile && dom.fileInput) {
       dom.btnBrowseFile.addEventListener('click', () => dom.fileInput.click());
     }
@@ -872,7 +871,7 @@
       dom.btnExportReport.addEventListener('click', exportAttendanceReport);
     }
 
-    // Add / Edit Modal
+    // Modal
     if (dom.btnOpenAddModal) {
       dom.btnOpenAddModal.addEventListener('click', openAddModal);
     }
@@ -913,7 +912,7 @@
     }));
     state.globalSimAttend = 0;
     state.globalSimMiss = 0;
-    state.totalRecordsProcessed = res.totalRows || 0;
+    state.totalRecordsProcessed = res.totalRows || state.subjects.length;
 
     saveSubjects();
     renderAll();
@@ -924,7 +923,7 @@
     }
 
     if (dom.pasteStatusBadge) {
-      dom.pasteStatusBadge.innerText = `Analyzed ${res.totalRows || state.subjects.length} records across ${state.subjects.length} subjects!`;
+      dom.pasteStatusBadge.innerText = `Analyzed ${state.subjects.length} subjects from your report!`;
     }
 
     showToast(`Calculated attendance for ${state.subjects.length} subjects!`, 4000);
@@ -963,7 +962,6 @@
     showToast(`Imported ${state.subjects.length} subjects from ${file.name}!`, 4000);
   }
 
-  // Add / Edit Modal
   function openAddModal() {
     state.editingSubjectId = null;
     if (dom.modalTitle) dom.modalTitle.innerText = "Add New Subject";
@@ -1045,7 +1043,6 @@
     renderAll();
   }
 
-  // Export report to CSV
   function exportAttendanceReport() {
     if (state.subjects.length === 0) {
       alert("No subjects to export.");
@@ -1081,7 +1078,6 @@
     showToast("Report exported successfully!");
   }
 
-  // Toast
   let toastTimeout;
   function showToast(msg, duration = 3000) {
     if (!dom.toast || !dom.toastMessage) return;
